@@ -191,7 +191,7 @@ class fluidsim():
         # Check barrier grid
         hits = self.barrier_grid[grid_y, grid_x] > 0
 
-        if np.any(hits):
+        if np.any(hits) and False:
             # Move particles back along velocity direction until outside wall
             # and damp their velocity to simulate inelastic collision
             vx[hits] *= -0.4  # reverse and dampen
@@ -233,7 +233,7 @@ class fluidsim():
         for y in range(len(self.density_array)):
             for x in range(len(self.density_array[0])):
                 rect = pg.rect.Rect(x*self.density_grid_size - self.density_grid_size/2, y*self.density_grid_size -self.density_grid_size/2 , self.density_grid_size, self.density_grid_size)
-                pg.draw.rect(screen, (0,0,min(self.density_array[y][x],1)**0.2*255), rect)
+                pg.draw.rect(screen, (0,0,min(self.density_array[y][x],1)**0.5*255), rect)
 
     def drawVelocity(self,coord):
         maxvel = max(abs(self.velocity_array[coord].reshape(-1)))
@@ -250,11 +250,12 @@ class fluidsim():
     def add_particles(self,x,y,xvelocity,yvelocity):
         self.particle_array = np.append(self.particle_array,np.array([x,y,xvelocity,yvelocity])[np.newaxis],axis = 0)
 
-    def inflow(self,x,y,xvelocity,yvelocity,frames_per_paritcle,max_particles):
-        if frames_per_paritcle*max_particles < self.frames:
+    def inflow(self,x,y,number_of_inflow,x_spacing,y_spacing,xvelocity,yvelocity,frames_per_paritcle,max_particles):
+        if frames_per_paritcle*max_particles/number_of_inflow < self.frames:
             return
         if self.frames%frames_per_paritcle == 0:
-            self.add_particles(x,y,xvelocity,yvelocity)
+            for i in range(number_of_inflow):
+                self.add_particles(x+i*x_spacing,y+i*y_spacing,xvelocity,yvelocity)
         self.frames+=1
 
 
@@ -268,7 +269,7 @@ class fluidsim():
                 rect = pg.rect.Rect(x * self.density_grid_size - self.density_grid_size / 2,
                                     y * self.density_grid_size - self.density_grid_size / 2, self.density_grid_size,
                                     self.density_grid_size)
-                pg.draw.rect(screen, (0, 0, min(self.barrier_grid[y][x], 1) * 255), rect)
+                pg.draw.rect(screen, (255, 255,255), rect)
 
     def read_barrier(self):
         with open('LayoutMap.txt', 'r') as filehandle:
@@ -299,9 +300,9 @@ class fluidsim():
 
 
 
-fluidsim = fluidsim(10,2000,1,0.4,2,60,7, 0.11,-0.55,0.05,0.02, 0.0);
+fluidsim = fluidsim(5,0,1,0.5,3,60,5, 0.2,-0.4,0.06,0.02, 0.0);
 
-#fluidsim.read_barrier()
+fluidsim.read_barrier()
 fluidsim.edit_barrier()
 fluidsim.write_barrier()
 
@@ -315,7 +316,8 @@ while running:
     screen.fill((0,0,0))
 
     mark0 = time.perf_counter()
-    fluidsim.inflow(20, 40, 1, 0, 3, 300)
+    fluidsim.inflow(20, 40,3,0,20, 1, 0, 3, 4000)
+
     mark1 = time.perf_counter()
     fluidsim.density_optimized()
     mark2 = time.perf_counter()
@@ -323,7 +325,7 @@ while running:
     mark3 = time.perf_counter()
     fluidsim.move()
     mark4 = time.perf_counter()
-    fluidsim.drawVelocity(0)
+    #fluidsim.drawVelocity(1)
     # fluidsim.drawVelocity(0)
     fluidsim.drawDensity()
     mark5 = time.perf_counter()
@@ -331,7 +333,7 @@ while running:
     fluidsim.draw_Barrier()
     mark6 = time.perf_counter()
 
-
+    '''
     print(f"inflow: {(mark1 - mark0) / (mark6 - mark0) * 100:.2f}%")
     print(f"density: {(mark2 - mark1) / (mark6 - mark0) * 100:.2f}%")
     print(f"vel: {(mark3 - mark2) / (mark6 - mark0) * 100:.2f}%")
@@ -340,6 +342,7 @@ while running:
     print(f"draw balls: {(mark6 - mark5) / (mark6 - mark0) * 100:.2f}%")
     print(f"total: {mark6-mark0}")
     print("\n")
+    '''
 
 
 
