@@ -117,9 +117,10 @@ class fluidsim():
 
             # contribution using exp(-k * r2)
             contrib = repulsion_strength * np.exp(-k * r2)
+            contrib = 2**(-((r2**0.5)/5))
 
             # Optionally mask very small contributions to save some adds
-            # contrib[r2 > (self.partition_size**2)] = 0.0   # optional
+            contrib[r2 > 2*(self.partition_size**2)] = 0.0   # optional
 
             density[iy0:iy1 + 1, ix0:ix1 + 1] += contrib
 
@@ -316,7 +317,7 @@ while running:
     screen.fill((0,0,0))
 
     mark0 = time.perf_counter()
-    fluidsim.inflow(20, 40,3,0,20, 1, 0, 3, 4000)
+    fluidsim.inflow(20, 40,2,0,50, 1, 0, 5, 4000)
 
     mark1 = time.perf_counter()
     fluidsim.density_optimized()
